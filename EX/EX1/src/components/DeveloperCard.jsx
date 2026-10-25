@@ -1,5 +1,6 @@
 import { useState, Fragment } from 'react';
 import { SkillBadge } from './SkillBadge';
+import styles from './DeveloperCard.module.css';
 
 /**
  * DeveloperCard component displaying engineer and pro-gamer identity.
@@ -35,16 +36,19 @@ export function DeveloperCard({
     : (words[0]?.[0] || 'D').toUpperCase();
 
   return (
-    <article aria-labelledby="dev-heading">
-      <header>
+    <article className={styles.card} aria-labelledby="dev-heading" tabIndex={0}>
+      <header className={styles.header}>
         {imageFailed ? (
-          <span aria-hidden="true">{initials}</span>
+          <span className={styles.fallback} aria-hidden="true">
+            {initials}
+          </span>
         ) : (
           <img
             src={avatarUrl}
             alt={`Portrait avatar of ${fullName}`}
             width="64"
             height="64"
+            className={styles.avatar}
             onError={() => setImageFailed(true)}
           />
         )}
@@ -54,7 +58,7 @@ export function DeveloperCard({
         </hgroup>
       </header>
 
-      <dl>
+      <dl className={styles.metrics}>
         {Object.entries(metrics).map(([k, v]) => (
           <Fragment key={k}>
             <dt>{k}</dt>
@@ -63,7 +67,7 @@ export function DeveloperCard({
         ))}
       </dl>
 
-      <ul aria-label="Engineered Skills">
+      <ul className={styles.skills} aria-label="Engineered Skills">
         {skills.map((s) => (
           <SkillBadge key={s.id} name={s.name} tier={s.tier} />
         ))}
