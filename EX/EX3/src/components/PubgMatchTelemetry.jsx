@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { fetchKraftonPubgTelemetry } from '../api/fetchKraftonPubgTelemetry';
+import styles from './PubgMatchTelemetry.module.css';
 
 /**
- * PubgMatchTelemetry component rendering live match telemetry
- * with an explicit 4-state machine and AbortController lifecycle cleanup.
+ * PubgMatchTelemetry component rendering real-time esports match statistics
+ * with an explicit 4-state machine, AbortController lifecycle cleanup, and skeleton loading.
  * @param {Object} props
  * @param {string} [props.squadId='te'] - Target squad ID ('ces' | 'te' | 'ge').
  * @returns {JSX.Element}
@@ -22,7 +23,7 @@ export function PubgMatchTelemetry({ squadId = 'te' }) {
         setView({ status: 'SUCCESS', data, error: null });
       })
       .catch((err) => {
-        // Silently ignore AbortError on rapid squad switching or unmount
+        // Silently ignore AbortError on rapid squad switching or component unmount
         if (err.name === 'AbortError') {
           return;
         }
@@ -39,124 +40,77 @@ export function PubgMatchTelemetry({ squadId = 'te' }) {
   }, [squadId, retryTick]);
 
   return (
-    <section aria-label="Squad Telemetry Display">
+    <div className={styles.container}>
+      {/* 1. LOADING: Skeleton placeholder with min-height: 220px and visually hidden text */}
       {view.status === 'LOADING' && (
-        <div
-          aria-busy="true"
-          aria-label="Loading squad match telemetry"
-          style={{
-            minHeight: '220px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#131b2e',
-            border: '1px solid #1e293b',
-            borderRadius: '0.75rem',
-            color: '#38bdf8',
-            fontWeight: 600,
-          }}
-        >
-          Connecting to KRAFTON satellite uplink...
-        </div>
+        <section aria-busy="true" className={styles.skeleton}>
+          <span className={styles.visuallyHidden}>Syncing KRAFTON Radar...</span>
+          <div className={styles.skeletonHeader} />
+          <div className={styles.skeletonGrid}>
+            <div className={styles.skeletonLine} />
+            <div className={styles.skeletonLine} />
+            <div className={styles.skeletonLine} />
+            <div className={styles.skeletonLine} />
+          </div>
+          <div className={styles.skeletonLine} style={{ width: '40%' }} />
+        </section>
       )}
 
+      {/* 2. ERROR: Alert section with min-height: 220px and Reconnect Satellite button */}
       {view.status === 'ERROR' && (
-        <section
-          role="alert"
-          aria-live="assertive"
-          style={{
-            minHeight: '220px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            padding: '1.5rem',
-            background: '#1c1917',
-            border: '1px solid #7f1d1d',
-            borderRadius: '0.75rem',
-            color: '#f8fafc',
-          }}
-        >
-          <h3 style={{ color: '#ef4444', margin: '0 0 0.5rem 0' }}>
-            Satellite Uplink Interrupted
-          </h3>
-          <p style={{ margin: '0 0 1rem 0', color: '#fca5a5' }}>
-            {view.error}
+        <section role="alert" className={styles.alert}>
+          <h2 className={styles.alertTitle}>Telemetry Uplink Failure</h2>
+          <p className={styles.alertMessage}>
+            Blue-Zone Link Lost: {view.error}
           </p>
           <button
             type="button"
             onClick={() => setRetryTick((t) => t + 1)}
-            style={{
-              alignSelf: 'flex-start',
-              padding: '0.5rem 1rem',
-              backgroundColor: '#ef4444',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '0.375rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className={styles.retryButton}
           >
-            Retry Telemetry Fetch
+            Reconnect Satellite
           </button>
         </section>
       )}
 
+      {/* 3. SUCCESS: Match statistics card with min-height: 220px to prevent layout shift */}
       {view.status === 'SUCCESS' && view.data && (
         <article
           aria-labelledby="telemetry-squad-title"
-          style={{
-            minHeight: '220px',
-            padding: '1.5rem',
-            background: '#131b2e',
-            border: '1px solid #1e293b',
-            borderRadius: '0.75rem',
-            color: '#f8fafc',
-          }}
+          className={styles.card}
         >
-          <h3
-            id="telemetry-squad-title"
-            style={{
-              fontSize: '1.25rem',
-              color: '#38bdf8',
-              margin: '0 0 1rem 0',
-            }}
-          >
-            {view.data.name} Match Telemetry
-          </h3>
-          <dl
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'auto 1fr',
-              rowGap: '0.5rem',
-              columnGap: '1.5rem',
-              margin: 0,
-            }}
-          >
-            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Map</dt>
-            <dd style={{ margin: 0, fontWeight: 500 }}>{view.data.map}</dd>
+          <header>
+            <h2 id="telemetry-squad-title" className={styles.squadTitle}>
+              {view.data.name} Telemetry
+            </h2>
+          </header>
 
-            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Phase</dt>
-            <dd style={{ margin: 0, fontWeight: 500 }}>{view.data.phase}</dd>
+          <dl className={styles.statsGrid}>
+            <dt className={styles.statTerm}>Map</dt>
+            <dd className={styles.statDetail}>{view.data.map}</dd>
 
-            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Alive</dt>
-            <dd style={{ margin: 0, fontWeight: 500 }}>{view.data.alive} players</dd>
+            <dt className={styles.statTerm}>Phase</dt>
+            <dd className={styles.statDetail}>{view.data.phase}</dd>
 
-            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Kills</dt>
-            <dd style={{ margin: 0, fontWeight: 500 }}>{view.data.kills}</dd>
+            <dt className={styles.statTerm}>Alive</dt>
+            <dd className={styles.statDetail}>{view.data.alive} players</dd>
 
-            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>WWCD Probability</dt>
-            <dd style={{ margin: 0, fontWeight: 600, color: '#4ade80' }}>
+            <dt className={styles.statTerm}>Kills</dt>
+            <dd className={styles.statDetail}>{view.data.kills}</dd>
+
+            <dt className={styles.statTerm}>WWCD Probability</dt>
+            <dd className={`${styles.statDetail} ${styles.statProb}`}>
               {view.data.wwcdProb}
             </dd>
 
-            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Status</dt>
-            <dd style={{ margin: 0, fontWeight: 500, color: '#fbbf24' }}>
+            <dt className={styles.statTerm}>Status</dt>
+            <dd className={`${styles.statDetail} ${styles.statStatus}`}>
               {view.data.status}
             </dd>
           </dl>
         </article>
       )}
-    </section>
+    </div>
   );
 }
 

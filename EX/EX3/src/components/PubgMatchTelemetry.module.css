@@ -1,0 +1,215 @@
+.container {
+  --color-bg: #131b2e;
+  --color-surface: #0f172a;
+  --color-border: #1e293b;
+  --color-border-subtle: #334155;
+  --color-accent: #38bdf8;
+  --color-accent-green: #4ade80;
+  --color-accent-amber: #fbbf24;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-error-bg: #1c1917;
+  --color-error-border: #991b1b;
+  --color-error-text: #fca5a5;
+  --color-error-btn: #ef4444;
+  --color-focus: #38bdf8;
+
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skeleton loader with fixed min-height: 220px for zero layout shift */
+.skeleton {
+  min-height: 220px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    #131b2e 0%,
+    #1e293b 50%,
+    #131b2e 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.skeletonLine {
+  background: rgba(56, 189, 248, 0.12);
+  border-radius: 0.375rem;
+  height: 20px;
+}
+
+.skeletonHeader {
+  width: 60%;
+  height: 26px;
+  background: rgba(56, 189, 248, 0.18);
+  border-radius: 0.375rem;
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: #1e293b;
+  }
+}
+
+/* Error Alert Section with min-height: 220px */
+.alert {
+  min-height: 220px;
+  width: 100%;
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.alertTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f87171;
+  margin: 0;
+}
+
+.alertMessage {
+  font-size: 0.9375rem;
+  color: var(--color-error-text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.retryButton {
+  background-color: var(--color-error-btn);
+  color: #ffffff;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  margin-top: 0.5rem;
+}
+
+.retryButton:hover {
+  background-color: #dc2626;
+}
+
+.retryButton:focus-visible {
+  outline: 2px solid #f87171;
+  outline-offset: 3px;
+}
+
+/* Success Card with min-height: 220px */
+.card {
+  min-height: 220px;
+  width: 100%;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.squadTitle {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--color-accent);
+  margin: 0 0 1rem 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  row-gap: 0.625rem;
+  column-gap: 1.5rem;
+  margin: 0;
+  align-items: baseline;
+}
+
+.statTerm {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.statDetail {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  text-align: right;
+}
+
+.statProb {
+  color: var(--color-accent-green);
+}
+
+.statStatus {
+  color: var(--color-accent-amber);
+}
+
+@media (max-width: 375px) {
+  .skeleton,
+  .alert,
+  .card {
+    padding: 1rem;
+  }
+
+  .squadTitle {
+    font-size: 1.125rem;
+  }
+
+  .statsGrid {
+    column-gap: 1rem;
+    font-size: 0.8125rem;
+  }
+
+  .statDetail {
+    font-size: 0.875rem;
+  }
+}
