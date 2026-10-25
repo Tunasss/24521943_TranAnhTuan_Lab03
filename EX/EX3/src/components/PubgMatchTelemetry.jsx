@@ -1,120 +1,162 @@
 import { useState, useEffect } from 'react';
-import { SQUADS } from '../data/pubgSquads';
-import { fetchKraftonPubgTelemetry } from '../api/telemetryApi';
+import { fetchKraftonPubgTelemetry } from '../api/fetchKraftonPubgTelemetry';
 
 /**
- * PubgMatchTelemetry component rendering real-time esports match statistics
- * governed by an explicit 4-state machine and lifecycle AbortController cleanup.
+ * PubgMatchTelemetry component rendering live match telemetry
+ * with an explicit 4-state machine and AbortController lifecycle cleanup.
+ * @param {Object} props
+ * @param {string} [props.squadId='te'] - Target squad ID ('ces' | 'te' | 'ge').
+ * @returns {JSX.Element}
  */
-export function PubgMatchTelemetry() {
-  const [selectedSquadId, setSelectedSquadId] = useState(SQUADS[0].id);
+export function PubgMatchTelemetry({ squadId = 'te' }) {
+  const [view, setView] = useState({ status: 'IDLE', data: null, error: null });
   const [retryTick, setRetryTick] = useState(0);
-
-  // Four-state machine: 'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR' - NO boolean soup
-  const [telemetryState, setTelemetryState] = useState({
-    status: 'IDLE',
-    data: null,
-    error: null,
-  });
 
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadTelemetry() {
-      setTelemetryState({ status: 'LOADING', data: null, error: null });
+    setView({ status: 'LOADING', data: null, error: null });
 
-      try {
-        const result = await fetchKraftonPubgTelemetry(selectedSquadId, {
-          signal: controller.signal,
-        });
-        setTelemetryState({ status: 'SUCCESS', data: result, error: null });
-      } catch (err) {
-        // Silently ignore aborted requests from rapid squad switching or unmount
+    fetchKraftonPubgTelemetry(squadId, { signal: controller.signal })
+      .then((data) => {
+        setView({ status: 'SUCCESS', data, error: null });
+      })
+      .catch((err) => {
+        // Silently ignore AbortError on rapid squad switching or unmount
         if (err.name === 'AbortError') {
           return;
         }
-        setTelemetryState({
+        setView({
           status: 'ERROR',
           data: null,
-          error: err.message || 'Telemetry connection failure.',
+          error: err.message || 'Satellite packet lost',
         });
-      }
-    }
-
-    loadTelemetry();
+      });
 
     return () => {
       controller.abort();
     };
-  }, [selectedSquadId, retryTick]);
+  }, [squadId, retryTick]);
 
   return (
-    <article aria-labelledby="telemetry-title">
-      <header>
-        <h1 id="telemetry-title">PUBG VN Live Match Telemetry</h1>
-        <p>Real-time telemetry uplink from Erangel Grand Finals.</p>
-      </header>
-
-      <fieldset>
-        <legend>Select PUBG Vietnam Squad</legend>
-        <div>
-          {SQUADS.map((squad) => (
-            <button
-              key={squad.id}
-              type="button"
-              aria-pressed={selectedSquadId === squad.id}
-              onClick={() => setSelectedSquadId(squad.id)}
-            >
-              {squad.name} ({squad.tag})
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      {/* State Machine Rendering */}
-      {telemetryState.status === 'LOADING' && (
-        <section
+    <section aria-label="Squad Telemetry Display">
+      {view.status === 'LOADING' && (
+        <div
           aria-busy="true"
           aria-label="Loading squad match telemetry"
-          style={{ minHeight: '220px' }}
+          style={{
+            minHeight: '220px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#131b2e',
+            border: '1px solid #1e293b',
+            borderRadius: '0.75rem',
+            color: '#38bdf8',
+            fontWeight: 600,
+          }}
         >
-          <p>Connecting to KRAFTON telemetry uplink...</p>
-        </section>
+          Connecting to KRAFTON satellite uplink...
+        </div>
       )}
 
-      {telemetryState.status === 'ERROR' && (
-        <section role="alert" aria-live="assertive">
-          <h2>Telemetry Uplink Error</h2>
-          <p>{telemetryState.error}</p>
+      {view.status === 'ERROR' && (
+        <section
+          role="alert"
+          aria-live="assertive"
+          style={{
+            minHeight: '220px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '1.5rem',
+            background: '#1c1917',
+            border: '1px solid #7f1d1d',
+            borderRadius: '0.75rem',
+            color: '#f8fafc',
+          }}
+        >
+          <h3 style={{ color: '#ef4444', margin: '0 0 0.5rem 0' }}>
+            Satellite Uplink Interrupted
+          </h3>
+          <p style={{ margin: '0 0 1rem 0', color: '#fca5a5' }}>
+            {view.error}
+          </p>
           <button
             type="button"
             onClick={() => setRetryTick((t) => t + 1)}
+            style={{
+              alignSelf: 'flex-start',
+              padding: '0.5rem 1rem',
+              backgroundColor: '#ef4444',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '0.375rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
           >
             Retry Telemetry Fetch
           </button>
         </section>
       )}
 
-      {telemetryState.status === 'SUCCESS' && telemetryState.data && (
-        <section aria-labelledby="squad-result-title">
-          <h2 id="squad-result-title">
-            {telemetryState.data.squadName} [{telemetryState.data.tag}] - Match Status
-          </h2>
-          <dl>
-            <dt>Match Placement</dt>
-            <dd>{telemetryState.data.matchRank}</dd>
-            <dt>Total Team Kills</dt>
-            <dd>{telemetryState.data.totalKills}</dd>
-            <dt>Total Damage Dealt</dt>
-            <dd>{telemetryState.data.damageDealt} HP</dd>
-            <dt>Survival Duration</dt>
-            <dd>{telemetryState.data.survivalDuration}</dd>
-            <dt>Squad MVP</dt>
-            <dd>{telemetryState.data.mvpPlayer}</dd>
+      {view.status === 'SUCCESS' && view.data && (
+        <article
+          aria-labelledby="telemetry-squad-title"
+          style={{
+            minHeight: '220px',
+            padding: '1.5rem',
+            background: '#131b2e',
+            border: '1px solid #1e293b',
+            borderRadius: '0.75rem',
+            color: '#f8fafc',
+          }}
+        >
+          <h3
+            id="telemetry-squad-title"
+            style={{
+              fontSize: '1.25rem',
+              color: '#38bdf8',
+              margin: '0 0 1rem 0',
+            }}
+          >
+            {view.data.name} Match Telemetry
+          </h3>
+          <dl
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              rowGap: '0.5rem',
+              columnGap: '1.5rem',
+              margin: 0,
+            }}
+          >
+            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Map</dt>
+            <dd style={{ margin: 0, fontWeight: 500 }}>{view.data.map}</dd>
+
+            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Phase</dt>
+            <dd style={{ margin: 0, fontWeight: 500 }}>{view.data.phase}</dd>
+
+            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Alive</dt>
+            <dd style={{ margin: 0, fontWeight: 500 }}>{view.data.alive} players</dd>
+
+            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Kills</dt>
+            <dd style={{ margin: 0, fontWeight: 500 }}>{view.data.kills}</dd>
+
+            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>WWCD Probability</dt>
+            <dd style={{ margin: 0, fontWeight: 600, color: '#4ade80' }}>
+              {view.data.wwcdProb}
+            </dd>
+
+            <dt style={{ fontWeight: 600, color: '#94a3b8' }}>Status</dt>
+            <dd style={{ margin: 0, fontWeight: 500, color: '#fbbf24' }}>
+              {view.data.status}
+            </dd>
           </dl>
-        </section>
+        </article>
       )}
-    </article>
+    </section>
   );
 }
 
