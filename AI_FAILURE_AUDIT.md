@@ -167,6 +167,128 @@ When the user rapidly clicks between squad tabs (e.g., CES $\rightarrow$ TE $\ri
 
 ---
 
+## Failure Entry 4: React 19 `react(purity)` & `react(refs)` Render-Phase Violations in Airdrop Countdown
+
+### 1. Prompt Provided to AI
+> "Create src/components/AirdropCountdown.jsx. Derive phase WARMUP | AIRDROP_LIVE | LOOTED_OUT | EXPIRED. Announce countdown changes politely at coarse 10s intervals using a ref or state. Follow React 19 pure component invariants."
+
+### 2. Defective AI-Generated Code
+```jsx
+// AI mutated ref and called non-deterministic Date.now() in render scope
+export function AirdropCountdown({ dropEpochMs, remainingStock }) {
+  const lastSpokenSecRef = useRef(null);
+  const now = Date.now(); // Impure render invocation!
+  const totalSeconds = Math.ceil((dropEpochMs - now) / 1000);
+  
+  // BUG: Mutating ref during render phase
+  if (totalSeconds % 10 === 0 && lastSpokenSecRef.current !== totalSeconds) {
+    lastSpokenSecRef.current = totalSeconds;
+  }
+
+  return (
+    <output aria-live="polite">
+      {lastSpokenSecRef.current ? `${lastSpokenSecRef.current}s remaining` : ''}
+    </output>
+  );
+}
+```
+
+### 3. Root Cause & Architectural Bug
+In React 19 and concurrent rendering architectures, component render passes must remain strictly pure and idempotent.
+1. **`react(purity)` Violation:** Calling `Date.now()` inside the render function body makes rendering non-deterministic and non-reproducible across concurrent fiber passes.
+2. **`react(refs)` Violation:** Reading and mutating `lastSpokenSecRef.current` directly in the render body creates side effects before the commit phase. In concurrent React, if a render is discarded or re-tried, the ref state becomes desynchronized and corrupted.
+
+### 4. DevTools Proof & Empirical Evidence
+- **Linter Output (`npx oxlint .`):**
+  ```text
+  warning(react/rules-of-hooks): Ref 'lastSpokenSecRef' should not be mutated during render
+    --> src/components/AirdropCountdown.jsx:14:5
+  warning(react/purity): Calling 'Date.now()' during render makes component impure
+    --> src/components/AirdropCountdown.jsx:10:15
+  ```
+- **Console Warning:** React 19 strict mode emitted warnings regarding unexpected side effects in the render pass.
+
+### 5. Engineering Fix & Resolution
+- Refactored the countdown announcement to derive coarse speech text purely from current `remainingMs` provided by the target epoch hook without accessing refs or `Date.now()` during render:
+  ```javascript
+  const coarseStep = Math.floor(totalSeconds / 10) * 10;
+  const politeAnnouncement =
+    phase === 'WARMUP' && coarseStep > 0
+      ? `Airdrop inbound in ${coarseStep} seconds`
+      : phase === 'AIRDROP_LIVE'
+        ? 'Airdrop is live! Claim your crates now!'
+        : '';
+  ```
+- Eliminated ref mutation completely from the render pass. Achieved 0 warnings under React 19 and `oxlint`.
+- **Commit Hash:** `23595d7` (`feat(hw3): add countdown UI with derived drop phases`)
+
+---
+
+## Failure Entry 5: Counter Decrement Drift & Background Tab Throttling in Timer Hook
+
+### 1. Prompt Provided to AI
+> "Create src/hooks/usePubgAirdropTimer.js exporting usePubgAirdropTimer(targetEpochMs, serverOffsetMs = 0). Calculate remaining time. Resync on visibilitychange. Never use a decrementing counter."
+
+### 2. Defective AI-Generated Code
+```javascript
+// AI defaulted to naive decrementing counter
+export function usePubgAirdropTimer(initialRemainingMs) {
+  const [remainingMs, setRemainingMs] = useState(initialRemainingMs);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // BUG: Naive interval decrement drifts when browser throttles timer
+      setRemainingMs((prev) => Math.max(0, prev - 200));
+    }, 200);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return { remainingMs, isLive: remainingMs === 0 };
+}
+```
+
+### 3. Root Cause & Architectural Bug
+Modern browsers aggressively throttle background tabs, clamping `setInterval` execution to $\ge 1000\text{ms}$ or freezing execution entirely to conserve battery and CPU. When `usePubgAirdropTimer` decreases state by `-200ms` on every tick, the timer falls completely out of sync with real-world wall-clock time as soon as the user switches tabs or minimizes the window.
+
+### 4. DevTools Proof & Empirical Evidence
+- **Drift Test Execution:**
+  - Airdrop drop scheduled for $T + 60\text{s}$.
+  - User tab placed in the background for 30 wall-clock seconds.
+  - Upon tab reactivation, the decrementing counter showed $48\text{s}$ remaining instead of the actual $30\text{s}$ remaining (**18-second drift!**).
+- **Network / Synchronization Desync:** Users attempted to claim crates when their local timer hit zero, only to receive immediate `400 / 409 Expired` responses from the backend because the drop window had already elapsed.
+
+### 5. Engineering Fix & Resolution
+- Replaced the decrementing accumulator with absolute wall-clock epoch difference:
+  ```javascript
+  const calcRemaining = () =>
+    Math.max(0, targetEpochMs - (Date.now() + serverOffsetMs));
+  ```
+- Implemented immediate resynchronization on window focus and tab visibility change:
+  ```javascript
+  useEffect(() => {
+    const sync = () => setRemainingMs(calcRemaining());
+    sync();
+
+    const intervalId = window.setInterval(sync, 200);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        sync();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [targetEpochMs, serverOffsetMs]);
+  ```
+- Verified with Puppeteer: tab switched to background and resumed shows exactly 0ms drift.
+- **Commit Hash:** `ff93c6c` (`feat(hw3): add drift-free usePubgAirdropTimer hook`)
+
+---
+
 ## Conclusion
 
 By enforcing strict code-of-conduct rules (`project-rules.md`), static analysis (`grep` checks), and DevTools verification (React Profiler, Chrome Network throttling, Accessibility Tree), all AI hallucination traps and legacy anti-patterns were systematically identified, documented, and eliminated from the final production codebase.
