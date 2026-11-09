@@ -1,0 +1,134 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background-color: #450a0a;
+  color: #fecaca;
+  border: 2px solid #ef4444;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.alert p {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.dismissBtn {
+  padding: 0.35rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background-color: #7f1d1d;
+  color: #ffffff;
+  border: 1px solid #f87171;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dismissBtn:focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.25rem;
+}
+
+.crateCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: #111827;
+  border: 2px solid #374151;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.crateCard:hover {
+  border-color: #4b5563;
+}
+
+.crateTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.4;
+}
+
+.price {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #38bdf8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.stock {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #9ca3af;
+}
+
+.stock strong {
+  color: #f3f4f6;
+  font-size: 1.05rem;
+}
+
+.claimBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  background-color: #0284c7;
+  border: 2px solid #38bdf8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.1s ease, transform 0.05s ease, opacity 0.1s ease;
+}
+
+.claimBtn:hover:not(:disabled) {
+  background-color: #0369a1;
+}
+
+.claimBtn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.claimBtn:focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.claimBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #9ca3af;
+}
+
+.claimBtn[aria-busy="true"] {
+  background-color: #c2410c;
+  border-color: #fb923c;
+  cursor: wait;
+}
