@@ -20,6 +20,7 @@
   background-color: var(--bg-color);
   min-height: 100vh;
   box-sizing: border-box;
+  overflow-x: hidden; /* Page itself has NO horizontal scroll */
 }
 
 .header {
