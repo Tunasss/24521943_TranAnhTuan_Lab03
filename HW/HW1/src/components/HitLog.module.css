@@ -1,0 +1,110 @@
+.logContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.meterContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.meterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.levelText {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.meter {
+  width: 100%;
+  height: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* Fallback styling for meter appearance */
+.meter::-webkit-meter-bar {
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 6px;
+}
+
+.meter::-webkit-meter-optimum-value {
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 80%, #f43f5e 100%);
+  border-radius: 5px;
+}
+
+.hitHeading {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.output {
+  display: block;
+}
+
+.hitList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0 0 0 1.5rem;
+  color: #cbd5e1;
+}
+
+.hitItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.hitLabel {
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.hitLevel {
+  color: #38bdf8;
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+
+.hitTime {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-family: ui-monospace, monospace;
+}
+
+.emptyState {
+  margin: 0;
+  padding: 1rem;
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  font-size: 0.95rem;
+}

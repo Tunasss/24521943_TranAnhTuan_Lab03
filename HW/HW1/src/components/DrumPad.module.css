@@ -1,0 +1,77 @@
+.padButton {
+  --pad-border: #475569;
+  --pad-bg: #1e293b;
+  --pad-text: #f8fafc;
+  --pad-hint-text: #94a3b8;
+  --pad-active-border: #38bdf8;
+  --pad-active-bg: #0369a1;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 110px;
+  padding: 1rem 0.5rem;
+  background-color: var(--pad-bg);
+  color: var(--pad-text);
+  border: 2px solid var(--pad-border);
+  border-radius: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  transition: transform 0.08s ease, background-color 0.08s ease, border-color 0.08s ease, box-shadow 0.08s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+}
+
+.padButton:hover {
+  background-color: #334155;
+  border-color: #64748b;
+}
+
+.padButton:focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+/* Active pressed state: not color-only (combines border, transform, and inset shadow) */
+.padButton[aria-pressed="true"],
+.padButton:active {
+  background-color: var(--pad-active-bg);
+  border-color: var(--pad-active-border);
+  transform: scale(0.95);
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.7), 0 0 16px rgba(56, 189, 248, 0.5);
+}
+
+.label {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #f8fafc;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.keyHint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #64748b;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.padButton[aria-pressed="true"] .keyHint {
+  background-color: #0284c7;
+  border-color: #bae6fd;
+  color: #ffffff;
+}
